@@ -53,7 +53,6 @@ func main() {
 	} else {
 		e.GET("/:format/:email", s.Lookup)
 	}
-	e.GET("/ping", s.Ping)
 	e.GET("/stats", s.Stats)
 	e.GET("/health", s.Health)
 
