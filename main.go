@@ -55,6 +55,7 @@ func main() {
 	}
 	e.GET("/ping", s.Ping)
 	e.GET("/stats", s.Stats)
+	e.GET("/health", s.Health)
 
 	// Host static demo pages if configured to do so
 	if config.ServeWeb {
