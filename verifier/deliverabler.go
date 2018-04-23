@@ -29,7 +29,7 @@ func NewDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error)
 		asciiDomain = domain
 	}
 
-	// Dial the SMTP server
+	// Dial any SMTP server that will accept a connection
 	client, err := dialSMTP(asciiDomain)
 	if err != nil {
 		return nil, err
@@ -62,37 +62,81 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 	if len(records) == 0 {
 		return nil, errors.New("No MX records found")
 	}
-	// Create a channel for receiving the first successful
-	// connection on
-	client := make(chan *smtp.Client, 1)
+
+	// Create a channel for receiving responses from
+	ch := make(chan interface{}, 1)
+	var done bool
 
 	// Attempt to connect to all SMTP servers concurrently
 	for _, record := range records {
 		addr := record.Host + ":25"
 		go func() {
-			// Dial the server with a timeout
-			conn, err := net.DialTimeout("tcp", addr, time.Minute)
+			c, err := smtpDialTimeout(addr, time.Minute)
 			if err != nil {
+				ch <- err
 				return
 			}
 
-			// Generate an smtp client form the connection
-			host, _, _ := net.SplitHostPort(addr)
-			sc, err := smtp.NewClient(conn, host)
-			if err != nil {
-				conn.Close()
-				return
-			}
-
-			// Place the connection on the channel or close it
-			select {
-			case client <- sc:
+			// Place the client on the channel or close it
+			switch {
+			case !done:
+				done = true
+				ch <- c
 			default:
-				sc.Close()
+				c.Close()
 			}
 		}()
 	}
-	return <-client, nil
+
+	// Collect errors or return a client
+	var errSlice []error
+	for {
+		res := <-ch
+		switch r := res.(type) {
+		case *smtp.Client:
+			return r, nil
+		case error:
+			errSlice = append(errSlice, r)
+			if len(errSlice) == len(records) {
+				return nil, errSlice[0]
+			}
+		default:
+			return nil, errors.New("Unexpected response dialing SMTP server")
+		}
+	}
+}
+
+// smtpDialTimeout is a timeout wrapper for smtp.Dial. It attempts to dial an
+// SMTP server and fails with a timeout if the passed timeout is reached while
+// attempting to establish a new connection
+func smtpDialTimeout(addr string, timeout time.Duration) (*smtp.Client, error) {
+	// Channel holding the new smtp.Client or error
+	ch := make(chan interface{}, 1)
+
+	// Dial the new smtp connection
+	go func() {
+		client, err := smtp.Dial(addr)
+		if err != nil {
+			ch <- err
+			return
+		}
+		ch <- client
+	}()
+
+	// Retrieve the smtp client from our client channel or timeout
+	select {
+	case res := <-ch:
+		switch r := res.(type) {
+		case *smtp.Client:
+			return r, nil
+		case error:
+			return nil, r
+		default:
+			return nil, errors.New("Unexpected response dialing SMTP server")
+		}
+	case <-time.After(timeout):
+		return nil, errors.New("Timeout connecting to mail-exchanger")
+	}
 }
 
 // IsDeliverable takes an email address and performs the operation of adding
@@ -135,8 +179,11 @@ func shouldRetry(err error) bool {
 	return insContains(err.Error(),
 		"i/o timeout",
 		"broken pipe",
+		"exceeded the maximum number of connections",
 		"use of closed network connection",
 		"connection reset by peer",
+		"connection declined",
+		"connection refused",
 		"multiple regions",
 		"server busy",
 		"eof")
