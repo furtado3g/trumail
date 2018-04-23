@@ -1,5 +1,5 @@
-hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-22T22:55:18.831905-07:00
+hash: 7af8dfcac4eb37ffa194fc74b568efbb86d652ab91078453e5858437536d185f
+updated: 2018-04-23T14:45:40.604110601-04:00
 imports:
 - name: github.com/labstack/echo
   version: f867058e3ba4fa4504e3ca976b31012db3ce1555
@@ -21,7 +21,7 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: e73bf333ef8920dbb52ad18d4bd38ad9d9bc76d7
+  version: 2b6c08872f4b66da917bb4ce98df4f0307330f78
   subpackages:
   - acme
   - acme/autocert
