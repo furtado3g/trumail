@@ -27,11 +27,12 @@ func NewVerifier(hostname, sourceAddr string) *Verifier {
 type Lookup struct {
 	XMLName xml.Name `json:"-" xml:"lookup"`
 	Address
-	Deliverable bool `json:"deliverable" xml:"deliverable"`
-	FullInbox   bool `json:"fullInbox" xml:"fullInbox"`
-	CatchAll    bool `json:"catchAll" xml:"catchAll"`
-	Disposable  bool `json:"disposable" xml:"disposable"`
-	Gravatar    bool `json:"gravatar" xml:"gravatar"`
+	Deliverable bool   `json:"deliverable" xml:"deliverable"`
+	Details     string `json:"details" xml:"details"`
+	FullInbox   bool   `json:"fullInbox" xml:"fullInbox"`
+	CatchAll    bool   `json:"catchAll" xml:"catchAll"`
+	Disposable  bool   `json:"disposable" xml:"disposable"`
+	Gravatar    bool   `json:"gravatar" xml:"gravatar"`
 }
 
 // VerifyTimeout performs an email verification, failing with an ErrTimeout
@@ -95,6 +96,7 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	// Perform the main address verification if not a catchall server
 	if !l.CatchAll {
 		if err := del.IsDeliverable(a.Address, 3); err != nil {
+			l.Details = err.Error()
 			le := parseRCPTErr(err)
 			if le != nil {
 				if le.Message == ErrFullInbox {
