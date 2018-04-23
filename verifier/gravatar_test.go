@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sdwolfe32/trumail/httpclient"
-	"gopkg.in/check.v1"
-	"gopkg.in/h2non/gock.v1"
+	"github.com/sdwolfe32/httpclient"
+	check "gopkg.in/check.v1"
+	gock "gopkg.in/h2non/gock.v1"
 )
 
 type gravatarSuite struct{}
@@ -19,50 +19,30 @@ func Test(t *testing.T) { check.TestingT(t) } // Just to make discoverable
 
 func configureRequestMock(addressMD5 string, statusCode int) *gock.Response {
 	url := "https://en.gravatar.com/" + addressMD5 + ".json"
-	return gock.New(url).
-		Head("").
-		Reply(statusCode)
+	return gock.New(url).Head("").Reply(statusCode)
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {
 	v := Verifier{client: httpclient.New(time.Second*5, nil)}
-	address := &Address{
-		Username: "username",
-		Domain:   "domain.com",
-		Address:  "username@domain.com",
-	}
-
-	configureRequestMock(address.MD5(), http.StatusOK)
+	configureRequestMock("asdf1234", http.StatusOK)
 	defer gock.Off()
 
-	c.Assert(v.HasGravatar(address), check.Equals, true)
+	c.Assert(v.HasGravatar("asdf1234"), check.Equals, true)
 }
 
 func (s *gravatarSuite) TestHasGravatarRequestError(c *check.C) {
 	v := Verifier{client: httpclient.New(time.Second*5, nil)}
-	address := &Address{
-		Username: "username",
-		Domain:   "domain.com",
-		Address:  "username@domain.com",
-	}
-
-	gockResponse := configureRequestMock(address.MD5(), 200)
+	gockResponse := configureRequestMock("asdf1234", 200)
 	gockResponse.SetError(errors.New("Some error while requesting"))
 	defer gock.Off()
 
-	c.Assert(v.HasGravatar(address), check.Equals, false)
+	c.Assert(v.HasGravatar("asdf1234"), check.Equals, false)
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusNotOk(c *check.C) {
 	v := Verifier{client: httpclient.New(time.Second*5, nil)}
-	address := &Address{
-		Username: "username",
-		Domain:   "domain.com",
-		Address:  "username@domain.com",
-	}
-
-	configureRequestMock(address.MD5(), http.StatusBadRequest)
+	configureRequestMock("asdf1234", http.StatusBadRequest)
 	defer gock.Off()
 
-	c.Assert(v.HasGravatar(address), check.Equals, false)
+	c.Assert(v.HasGravatar("asdf1234"), check.Equals, false)
 }

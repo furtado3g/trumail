@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"time"
 
-	"github.com/sdwolfe32/trumail/httpclient"
+	"github.com/sdwolfe32/httpclient"
 )
 
 // Verifier contains all dependencies needed to perform educated email
@@ -27,18 +27,20 @@ func NewVerifier(hostname, sourceAddr string) *Verifier {
 type Lookup struct {
 	XMLName xml.Name `json:"-" xml:"lookup"`
 	Address
+	ValidFormat bool   `json:"validFormat" xml:"validFormat"`
 	Deliverable bool   `json:"deliverable" xml:"deliverable"`
-	Details     string `json:"details" xml:"details"`
 	FullInbox   bool   `json:"fullInbox" xml:"fullInbox"`
+	HostExists  bool   `json:"hostExists" xml:"hostExists"`
 	CatchAll    bool   `json:"catchAll" xml:"catchAll"`
 	Disposable  bool   `json:"disposable" xml:"disposable"`
 	Gravatar    bool   `json:"gravatar" xml:"gravatar"`
+	ErrorDetail string `json:"errorDetail" xml:"errorDetail"`
 }
 
 // VerifyTimeout performs an email verification, failing with an ErrTimeout
 // if a valid Lookup isn't produced within the timeout passed
 func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, error) {
-	ch := make(chan interface{})
+	ch := make(chan interface{}, 1)
 
 	// Create a goroutine that will attempt to connect to the SMTP server
 	go func() {
@@ -59,58 +61,67 @@ func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, 
 		case error:
 			return nil, r
 		default:
-			return nil, newLookupError(ErrUnexpectedResponse, ErrUnexpectedResponse, false)
+			return nil, newLookupError(ErrUnexpectedResponse, ErrUnexpectedResponse)
 		}
 	case <-time.After(timeout):
-		return nil, newLookupError(ErrTimeout, ErrTimeout, false)
+		return nil, newLookupError(ErrTimeout, ErrTimeout)
 	}
 }
 
-// Verify parses the passed email and verifies it's deliverability,
-// returning any errors that are encountered
+// Verify performs an email verification on the passed email address
 func (v *Verifier) Verify(email string) (*Lookup, error) {
-	// First parse the email string passed
-	a, err := ParseAddress(email)
+	// Initialize the lookup
+	l := new(Lookup)
+	l.Address.Address = email
+
+	// First parse the email address passed
+	address, err := ParseAddress(email)
 	if err != nil {
-		return nil, newLookupError(ErrEmailParseFailure, ErrEmailParseFailure, false)
+		l.ValidFormat = false
+		return l, nil
 	}
+	l.ValidFormat = true
+	l.Address = *address
+
+	// Set all parse dependent but SMTP independent values
+	l.Disposable = v.disp.IsDisposable(address.Domain)
+	l.Gravatar = v.HasGravatar(address.MD5Hash)
 
 	// Attempt to form an SMTP Connection
-	del, err := NewDeliverabler(a.Domain, v.hostname, v.sourceAddr)
+	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
-		return nil, parseSTDErr(err)
+		l.ErrorDetail = err.Error()
+		le := parseSMTPError(err)
+		if le != nil && le.Message == ErrNoSuchHost {
+			l.HostExists = false
+			return l, nil
+		}
+		return nil, err
 	}
+	l.HostExists = true
 	defer del.Close() // Defer close the SMTP connection
-
-	// Declare the lookup to be populated and returned
-	var l Lookup
-	l.Address = *a
 
 	// Retrieve the catchall status
 	if del.HasCatchAll(3) {
 		l.CatchAll = true
 		l.Deliverable = true
 	}
-	l.Disposable = v.disp.IsDisposable(a.Domain)
 
 	// Perform the main address verification if not a catchall server
 	if !l.CatchAll {
-		if err := del.IsDeliverable(a.Address, 3); err != nil {
-			l.Details = err.Error()
-			le := parseRCPTErr(err)
+		if err := del.IsDeliverable(address.Address, 3); err != nil {
+			l.ErrorDetail = err.Error()
+			le := parseSMTPError(err)
 			if le != nil {
 				if le.Message == ErrFullInbox {
 					l.FullInbox = true // Set FullInbox and move on
-				} else {
-					return nil, le // Return if it's a legit error
+					return l, nil
 				}
+				return nil, le // Return if it's a legit error
 			}
 		} else {
 			l.Deliverable = true
 		}
 	}
-
-	// Check if the email has a Gravatar associated with it
-	l.Gravatar = v.HasGravatar(a)
-	return &l, nil
+	return l, nil
 }

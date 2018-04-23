@@ -17,7 +17,7 @@ var (
 	// ErrRateLimitExceeded is thrown when an IP exceeds the
 	// specified rate-limit
 	ErrRateLimitExceeded = echo.NewHTTPError(http.StatusTooManyRequests,
-		"Rate limit exceeded - If you'd like a higher request volume please contact steven@swolfe.me")
+		"Rate limit exceeded")
 )
 
 // RateLimiter is a middleware for limiting request
