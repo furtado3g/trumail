@@ -34,7 +34,7 @@ type Lookup struct {
 	CatchAll    bool   `json:"catchAll" xml:"catchAll"`
 	Disposable  bool   `json:"disposable" xml:"disposable"`
 	Gravatar    bool   `json:"gravatar" xml:"gravatar"`
-	errorDetail string `json:"details" xml:"details"`
+	ErrorDetail string `json:"errorDetail" xml:"errorDetail"`
 }
 
 // VerifyTimeout performs an email verification, failing with an ErrTimeout
@@ -90,6 +90,7 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	// Attempt to form an SMTP Connection
 	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
+		l.ErrorDetail = err.Error()
 		le := parseSMTPError(err)
 		if le != nil && le.Message == ErrNoSuchHost {
 			l.HostExists = false
@@ -109,7 +110,7 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	// Perform the main address verification if not a catchall server
 	if !l.CatchAll {
 		if err := del.IsDeliverable(address.Address, 3); err != nil {
-			l.errorDetail = err.Error()
+			l.ErrorDetail = err.Error()
 			le := parseSMTPError(err)
 			if le != nil {
 				if le.Message == ErrFullInbox {
