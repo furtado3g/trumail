@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo"
 	"github.com/sirupsen/logrus"
@@ -29,15 +30,14 @@ func main() {
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
-	//if config.RateLimitHours != 0 && config.RateLimitMax != 0 {
-	//	r := api.NewRateLimiter(config.RateLimitMax,
-	//		time.Hour*time.Duration(config.RateLimitHours), config.RateLimitCIDRCustom)
-	//	e.GET("/:format/:email", s.Lookup, r.RateLimit)
-	//	e.GET("/limit-status", r.LimitStatus)
-	//} else {
-	//	e.GET("/:format/:email", s.Lookup)
-	//}
-	e.GET("/v1/:format/:email", s.Lookup)
+	if config.RateLimitHours != 0 && config.RateLimitMax != 0 {
+		r := api.NewRateLimiter(config.RateLimitMax,
+			time.Hour*time.Duration(config.RateLimitHours), config.RateLimitCIDRCustom)
+		e.GET("/v1/:format/:email", s.Lookup, r.RateLimit)
+		e.GET("/limit-status", r.LimitStatus)
+	} else {
+		e.GET("/v1/:format/:email", s.Lookup)
+	}
 	e.GET("/v1/health", s.Health)
 
 	// Listen and Serve
