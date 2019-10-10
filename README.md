@@ -1,10 +1,10 @@
 # Trumail
-## DEPRECATION NOTICE: The old lookup endpoint https://trumail.io/{format}/{email} is now https://api.trumail.io/v1/{format}/{email}
+## https://{{localhost:8080}}/v1/{format}/{email}
 
 [![CircleCI](https://circleci.com/gh/sdwolfe32/trumail.svg?style=svg)](https://circleci.com/gh/sdwolfe32/trumail)
 [![GoDoc](https://godoc.org/github.com/sdwolfe32/trumail/verifier?status.svg)](https://godoc.org/github.com/sdwolfe32/trumail/verifier)
 
-Trumail is a free and open source email validation/verification system. It is available in three forms, the Golang client library `verifier` for use in your own Go projects, a public API endpoint (more info: https://trumail.io), and a public Docker image on DockerHub (see: https://hub.docker.com/r/sdwolfe32/trumail/). 
+Trumail is a free and open source email validation/verification system. It is available in three forms, the Golang client library `verifier` for use in your own Go projects, a public API endpoint (more info: https://trumail.io), and a public Docker image on DockerHub (see: https://hub.docker.com/r/furtado3g/trumail/). 
 
 NOTE: It is highly recommended (due to potential Heroku IP blacklisting resulting in failed validations) that you host the service yourself either using a Docker image or by forking and serving this project on your own instance. However, self-hosting Trumail requires bidirectional communication on port 25 which most residential ISPs restrict. AWS and Digitalocean both allow this.
 
@@ -37,8 +37,8 @@ func main() {
 ## Running with Go
 
 ```
-go get -d github.com/sdwolfe32/trumail/...
-go install github.com/sdwolfe32/trumail
+go get -d github.com/furtado3g/trumail/...
+go install github.com/furtado3g /trumail
 trumail
 ```
 
