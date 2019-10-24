@@ -1,6 +1,7 @@
 package verifier
 
 import (
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -38,13 +39,24 @@ func (d *Disposabler) farmDomains(interval time.Duration) error {
 	for {
 		for _, url := range lists {
 			// Perform the request for the domain list
-			body, err := d.client.GetString(url)
+			body := d.client.WithBaseURL(url)
+
+			var ghError struct {
+				Message       string `json:"message"`
+				Documentation string `json:"documentation"`
+			}
+
+			expected, err := body.Getf(url, ghError).
+				WithExpectedStatus(http.StatusOK).
+				WithRetry(1).
+				String()
+
 			if err != nil {
 				continue
 			}
 
 			// Split
-			for _, domain := range strings.Split(body, "\n") {
+			for _, domain := range strings.Split(expected, "\n") {
 				d.dispMap.Store(strings.TrimSpace(domain), true)
 			}
 		}
