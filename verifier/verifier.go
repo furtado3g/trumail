@@ -20,7 +20,7 @@ type Verifier struct {
 // email addresses
 func NewVerifier(hostname, sourceAddr string) *Verifier {
 	client := httpclient.New()
-	return &Verifier{client, hostname, sourceAddr, NewDisposabler(*client)}
+	return &Verifier{client, hostname, sourceAddr, NewDisposabler(client)}
 }
 
 // Lookup contains all output data for an email verification Lookup
