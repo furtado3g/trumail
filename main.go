@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/furtado3g/trumail/api"
+	"github.com/furtado3g/trumail/config"
+	"github.com/furtado3g/trumail/verifier"
 	"github.com/labstack/echo"
 	"github.com/sirupsen/logrus"
-	"github.com/technosolutionscl/trumail/api"
-	"github.com/technosolutionscl/trumail/config"
-	"github.com/technosolutionscl/trumail/verifier"
 )
 
 func main() {

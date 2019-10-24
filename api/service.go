@@ -3,8 +3,8 @@ package api
 import (
 	"time"
 
+	"github.com/furtado3g/trumail/verifier"
 	"github.com/sirupsen/logrus"
-	"github.com/technosolutionscl/trumail/verifier"
 )
 
 // Service contains all dependencies for the Trumail API
