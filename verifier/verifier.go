@@ -19,7 +19,7 @@ type Verifier struct {
 // and then returns a new Verifier reference that will be used to Verify
 // email addresses
 func NewVerifier(hostname, sourceAddr string) *Verifier {
-	client := httpclient.New(time.Second*30, nil)
+	client := httpclient.New()
 	return &Verifier{client, hostname, sourceAddr, NewDisposabler(client)}
 }
 
