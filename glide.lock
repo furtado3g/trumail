@@ -12,7 +12,7 @@ imports:
   version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
-- name: github.com/sdwolfe32/httpclient
+- name: github.com/s32x/httpclient
   version: c0d9028e14d66fd2fbf628c95312d618fdab0628
 - name: github.com/sirupsen/logrus
   version: 778f2e774c725116edbc3d039dc0dfc1cc62aae8
