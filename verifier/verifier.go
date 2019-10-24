@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"time"
 
-	"github.com/s32x/httpclient"
+	"github.com/sdwolfe32/httpclient"
 )
 
 // Verifier contains all dependencies needed to perform educated email
