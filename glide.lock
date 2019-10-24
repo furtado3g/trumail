@@ -13,7 +13,7 @@ imports:
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/s32x/httpclient
-  version: c0d9028e14d66fd2fbf628c95312d618fdab0628
+  version: 97aee9e626934d682ab766ac325fc32ba10d1cf2
 - name: github.com/sirupsen/logrus
   version: 778f2e774c725116edbc3d039dc0dfc1cc62aae8
 - name: github.com/valyala/bytebufferpool
