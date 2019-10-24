@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"time"
 
-	"github.com/sdwolfe32/httpclient"
+	"github.com/s32x/httpclient"
 )
 
 // Verifier contains all dependencies needed to perform educated email
@@ -20,7 +20,7 @@ type Verifier struct {
 // email addresses
 func NewVerifier(hostname, sourceAddr string) *Verifier {
 	client := httpclient.New()
-	return &Verifier{client, hostname, sourceAddr, NewDisposabler(client)}
+	return &Verifier{client, hostname, sourceAddr, NewDisposabler(*client)}
 }
 
 // Lookup contains all output data for an email verification Lookup
