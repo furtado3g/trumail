@@ -1,9 +1,9 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/technosolutionscl/trumail
+    working_directory: /go/src/github.com/furtado3g/trumail
     environment:
-      - DOCKER_TAG: technosolutionscl/trumail
+      - DOCKER_TAG: furtado3g/trumail
     docker:
       - image: circleci/golang:1.10.1
     steps:
