@@ -26,7 +26,7 @@ jobs:
           command: docker build --no-cache -t $DOCKER_TAG .
       - run:
           name: Login to DockerHub
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+          command: docker login -u $DOCKER_USER --password-stdin $DOCKER_PASSWORD
       - run:
           name: Push image to DockerHub
           command: docker push $DOCKER_TAG
